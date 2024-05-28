@@ -5,6 +5,12 @@ from controladores.validaciones import Validaciones
 from tkinter import messagebox
 from vistas.tabla import Tabla
 from vistas.tabla2 import Tabla2
+from tkinter import PhotoImage
+from PIL import Image, ImageTk
+import threading
+import time
+
+
 
 class Interfaz:
 
@@ -18,13 +24,63 @@ class Interfaz:
         data2 = []
 
         self.ventanaPrincipal = tk.Tk()
-        #self.ventanaPrincipal.resizable(0, 0)
+        self.ventanaPrincipal.title("Lavado de Autos")
+        self.ventanaPrincipal.state('zoomed')
+
+        '''aqui se gestiona la importacion de la imagen de fondo a la interfaz'''
+        image = 'front/vistas/resources/fondo.jpg'
+        self.original_image = Image.open(image)
+        self.fondo = ImageTk.PhotoImage(self.original_image)
+        self.label_fondo = tk.Label(self.ventanaPrincipal, image=self.fondo)
+        self.label_fondo.place(x=0, y=0, relwidth=1, relheight=1)
+        self.ventanaPrincipal.bind('<Configure>', self.redimensionar_fondo)
+
+        '''aqui se agrega el icono de la interfaz'''
+        self.ventanaPrincipal.iconbitmap('front/vistas/resources/carro.ico')
+
         self.comunicacion = Comunicacion(self.ventanaPrincipal)
         self.tabla = Tabla(self.ventanaPrincipal,titulos, columnas, data)
         self.tabla2 = Tabla2(self.ventanaPrincipal,titulos2,columnas2,data2)
 
+    '''esta funcion hace que la imagen que se ponga de fondo se adapte 
+    a los cambios de tamaño de la interfaz'''
+    def redimensionar_fondo(self, event):
+        # Redimensionar la imagen con el nuevo tamaño de ventana
+        new_width = event.width
+        new_height = event.height
+        image = self.original_image.resize((new_width, new_height), Image.Resampling.LANCZOS)  # Cambio aquí
+        self.fondo = ImageTk.PhotoImage(image)
+        self.label_fondo.config(image=self.fondo)
+        self.label_fondo.image = self.fondo  # Evitar que la imagen sea recolectada por el recolector de basura
+
+    '''en esta funcion se crea el hilo, en donde cada 60 segundos va a guardar en 
+    un archivo de texto plano la informacion de las tablas(clientes y servicios)'''
+    def guardar_datos_periodicamente(self):
+        while True:
+            # Obtener datos de clientes y servicios
+            clientes = self.comunicacion.consultar_cliente("", "", "", "", "")
+            servicios = self.comunicacion.consultar_todo("", "", "", "")
+            
+            # Guardar en un archivo
+            with open('datos_clientes_servicios.txt', 'w') as archivo:
+                archivo.write("Clientes:\n")
+                for cliente in clientes:
+                    archivo.write(f"{cliente}\n")
+                archivo.write("Servicios:\n")
+                for servicio in servicios:
+                    archivo.write(f"{servicio}\n")
+        # Esperar un minuto
+            time.sleep(60)
+    
     def validar_entrada(self, valor, etiqueta_error):
         mensaje_error = Validaciones.validarLetrasNumeros(valor)
+        if mensaje_error:
+            etiqueta_error.config(text=mensaje_error)
+        else:
+            etiqueta_error.config(text="")
+
+    def validar_entrada_valor(self, valor, etiqueta_error):
+        mensaje_error = Validaciones.validarValor(valor)
         if mensaje_error:
             etiqueta_error.config(text=mensaje_error)
         else:
@@ -64,7 +120,7 @@ class Interfaz:
         nombre_servicio_msg = Validaciones.validarLetrasNumeros(nombre_servicio)
         cedula_servicio_msg = Validaciones.validarLetrasNumeros(cedula_servicio)
         descripcion_servicio_msg = Validaciones.validarLetrasNumeros(descripcion_servicio)
-        valor_servicio_msg = Validaciones.validarLetrasNumeros(valor_servicio)
+        valor_servicio_msg = Validaciones.validarValor(valor_servicio)
         
         
         if nombre_servicio_msg or cedula_servicio_msg or descripcion_servicio_msg or valor_servicio_msg:
@@ -231,7 +287,7 @@ class Interfaz:
         self.entryNombre_servicio.bind("<KeyRelease>",lambda event: self.validar_entrada(self.entryNombre_servicio.get(),nombre_servicio_error))
         self.entryCedula_servicio.bind("<KeyRelease>",lambda event: self.validar_entrada(self.entryCedula_servicio.get(),cedula_servicio_error))
         self.entryDescripcion_servicio.bind("<KeyRelease>",lambda event: self.validar_entrada(self.entryDescripcion_servicio.get(),descripcion_servicio_error))
-        self.entryValor_servicio.bind("<KeyRelease>",lambda event: self.validar_entrada(self.entryValor_servicio.get(),valor_servicio_error))
+        self.entryValor_servicio.bind("<KeyRelease>",lambda event: self.validar_entrada_valor(self.entryValor_servicio.get(),valor_servicio_error))
 
         boton_guardar = tk.Button(self.ventanaPrincipal, text="Guardar Cliente", command=lambda: 
         self.accion_guardar_boton(self.entryNombre.get(), self.entryApellido.get(), self.entryCedula.get(), self.entryTelefono.get(),self.entryCorreo.get(), nombre_error, apellido_error, cedula_error, telefono_error, correo_error))
@@ -255,10 +311,7 @@ class Interfaz:
         boton_limpiar = tk.Button(self.ventanaPrincipal, text="Limpiar", command=lambda:self.limpiar_cajas())
         boton_limpiar_servicio = tk.Button(self.ventanaPrincipal, text="Limpiar", command=lambda:self.limpiar_cajas_servicio())
     
-        self.ventanaPrincipal.title("Ventana Principal")
-        self.ventanaPrincipal.state('zoomed')
-
-        #Coordenadas de las entradas y texto principal
+        '''Coordenadas de las entradas y texto principal'''
         labelNombre.place(x=20, y=40)
         self.entryNombre.place(x=120, y=40)
         labelApellido.place(x=20, y=80)
@@ -270,7 +323,7 @@ class Interfaz:
         labelCorreo.place(x=20,y=200)
         self.entryCorreo.place(x=120,y=200)
 
-        #Coordenadas de las entradas y texto del servicio
+        '''Coordenadas de las entradas y texto del servicio'''
         labelNombre_servicio.place(x=750, y=40)
         self.entryNombre_servicio.place(x=850, y=40)
         labelCedula_servicio.place(x=750, y=80)
@@ -280,7 +333,7 @@ class Interfaz:
         labelValor_servicio.place(x=750, y=160)
         self.entryValor_servicio.place(x=850, y=160)
         
-
+        '''coordenadas de todos los botones'''
         boton_guardar.place(x=130, y=230)
         boton_guardar_servicio.place(x=860,y=200)
         boton_consultar.place(x=875, y=260)
@@ -296,6 +349,7 @@ class Interfaz:
         label_idconsulta2.place(x=410, y=40)
         self.entryidconsulta2.place(x=450,y=40)
 
+        '''coordenadas de los titulos'''
         label_info1.place(x=70,y=10)
         label_info2.place(x=800,y=10)
         label_info3.place(x=1000,y=360)
@@ -304,6 +358,8 @@ class Interfaz:
         self.tabla.tabla.place(x=850,y=400,width=480)
         self.tabla2.tabla.place(x=60,y=400,width=530)
 
+        '''esta funcion es para cuando se haga click en un elemento de la tabla
+        se carguen los datos en los campos de texto de los servicios'''
         def seleccionar_elemento(_):
             for i in self.tabla.tabla.selection():
                 valores = self.tabla.tabla.item(i)['values']
@@ -318,7 +374,8 @@ class Interfaz:
                 self.entryValor_servicio.delete(0,tk.END)
                 self.entryValor_servicio.insert(0, str(valores[4]))
 
-
+        '''esta funcion es para cuando se haga click en un ekemento de la tabla
+        se carguen los campos de texto del cliente'''
         def seleccionar_elemento1(_):
             for i in self.tabla2.tabla.selection():
                 valores = self.tabla2.tabla.item(i)['values']
@@ -336,19 +393,22 @@ class Interfaz:
                 self.entryCorreo.insert(0, str(valores[5]))
                 
                 
-
+        #esta es la funcion de borrar elementos en la tabla de los servicios
         def borrar_elemento(_):
             for i in self.tabla.tabla.selection():
                 self.comunicacion.eliminar(self.tabla.tabla.item(i)['values'][0])
                 self.tabla.tabla.delete(i)
 
+        #esta es la funcion de borrar elementos en la tabla de los clientes 
         def borrar_elemento1(_):
             for i in self.tabla2.tabla.selection():
                 self.comunicacion.eliminar_cliente(self.tabla2.tabla.item(i)['values'][0])
                 self.tabla2.tabla.delete(i)
 
 
-    
+        '''eventos de las tablas, evento de borrar al presionar suprimir y evento
+        de selccionar y automaticamente rellenar las cajas de texto'''
+
         self.tabla.tabla.bind('<<TreeviewSelect>>',seleccionar_elemento)
         self.tabla.tabla.bind('<Delete>',borrar_elemento)
         self.tabla2.tabla.bind('<<TreeviewSelect>>',seleccionar_elemento1)
@@ -356,8 +416,16 @@ class Interfaz:
 
         
 
-
+        '''aqui se refrescan las tablas justo antes de iniciar la ventana del tkinter'''
         self.accion_consultar_todo_clientes(self.entryNombre.get(),self.entryApellido.get(),self.entryCedula.get(), self.entryTelefono.get(), self.entryCorreo.get())
         self.accion_consultar_todo(self.entryNombre_servicio.get(), self.entryCedula_servicio.get(), self.entryDescripcion_servicio.get(), self.entryValor_servicio.get())
+        
+        '''aqui se llama la funcion del hilo y se inicializa, tambien se le agrega hilo.daemon = True,
+        esto para asegurar que cuando se cierrre o se minimize la interfaz el hilo tambien se cierra'''
+        hilo = threading.Thread(target=self.guardar_datos_periodicamente)
+        hilo.daemon = True
+        hilo.start()
+
         self.ventanaPrincipal.mainloop()
+
 

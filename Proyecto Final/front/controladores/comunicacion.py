@@ -3,9 +3,10 @@ import requests
 class Comunicacion():
 
     def __init__(self, ventanaPrincipal):
-        self.url1 = 'http://localhost:8000/v1/cliente'
-        self.url2 = 'http://localhost:8000/v1/servicio'
+        self.url1 = 'http://192.0.0.1:8000/v1/cliente'
+        self.url2 = 'http://192.0.0.1:8000/v1/servicio'
         self.ventanaPrincipal = ventanaPrincipal
+
         pass
 
     def guardar(self, nombre, apellido, cedula, telefono, correo):
