@@ -1,0 +1,12 @@
+Clientes:
+{'id': 4, 'nombre': 'Sergio', 'apellido': 'Lamos Lozano', 'cedula': '1115195045', 'telefono': '3022076776', 'correo': 'sergio@correo.com'}
+{'id': 5, 'nombre': 'Juan Manuel', 'apellido': 'Quintero Lopez', 'cedula': '111111', 'telefono': '22222', 'correo': 'juan@correo.com'}
+{'id': 6, 'nombre': 'Harold Santiago', 'apellido': 'Vergara', 'cedula': '44444', 'telefono': '55555', 'correo': 'harold.vergara@corrreo.com'}
+{'id': 7, 'nombre': 'Hernesto', 'apellido': 'Perez', 'cedula': '7777', 'telefono': '3333', 'correo': 'hernesto@gmail.com'}
+{'id': 8, 'nombre': 'harold', 'apellido': 'torres', 'cedula': '1115184275', 'telefono': '3043515689', 'correo': 'santitover1@correo.com'}
+{'id': 9, 'nombre': 'carlos', 'apellido': 'penil', 'cedula': '454545', 'telefono': '848484', 'correo': 'sarga@correo.com'}
+{'id': 11, 'nombre': 'Raul', 'apellido': 'Londoño', 'cedula': '1115188651', 'telefono': '3117559703', 'correo': 'raullondonomurillo@gmail.com'}
+{'id': 12, 'nombre': 'sergio', 'apellido': 'lozano', 'cedula': '1111', 'telefono': '555555', 'correo': 'hfdfjhf@vvv'}
+Servicios:
+{'id': 9, 'nombre': 'TurboLavada', 'cedula': '1115195045', 'descripcion': 'Lavada a presion', 'valor': 50000}
+{'id': 10, 'nombre': 'Lavada Suprema', 'cedula': '1115188651', 'descripcion': 'Lavada de la vida', 'valor': 100000}
