@@ -43,6 +43,8 @@ class Interfaz:
         self.tabla = Tabla(self.ventanaPrincipal,titulos, columnas, data)
         self.tabla2 = Tabla(self.ventanaPrincipal,titulos2,columnas2,data2)
 
+        self.ejemplo_correo = "ejemplo@dominio.com"
+
     '''esta funcion hace que la imagen que se ponga de fondo se adapte 
     a los cambios de tamaño de la interfaz'''
     def redimensionar_fondo(self, event):
@@ -88,6 +90,13 @@ class Interfaz:
             etiqueta_error.config(text=mensaje_error)
         else:
             etiqueta_error.config(text="")
+    
+    def validar_entrada_correo(self, valor, etiqueta_error):
+        mensaje_error = Validaciones.validar_correo(valor)
+        if mensaje_error:
+            etiqueta_error.config(text=mensaje_error)
+        else:
+            etiqueta_error.config(text="")
 
     '''aqui se hace la funcion para guardar el cliente'''
     def accion_guardar_boton(self, nombre, apellido, cedula, telefono, correo,  nombre_error, apellido_error, cedula_error, telefono_error, correo_error):
@@ -96,7 +105,7 @@ class Interfaz:
         apellido_msg = Validaciones.validarLetrasNumeros(apellido)
         cedula_msg = Validaciones.validarValor(cedula)
         telefono_msg = Validaciones.validarValor(telefono)
-        correo_msg =Validaciones.validarLetrasNumeros(correo)
+        correo_msg =Validaciones.validar_correo(correo)
         
         if not self.comunicacion.consultar_cedula(cedula):
             if nombre_msg or apellido_msg or cedula_msg or telefono_msg or correo_msg:
@@ -221,6 +230,15 @@ class Interfaz:
         self.entryValor_servicio.delete(0,tk.END)
         self.entryidconsulta.delete(0,tk.END)
 
+    def on_entry_correo_focus_in(self, event):
+        if self.entryCorreo.get() == self.ejemplo_correo:
+            self.entryCorreo.delete(0, tk.END)
+            self.entryCorreo.config(fg='black')
+
+    def on_entry_correo_focus_out(self, event):
+        if not self.entryCorreo.get():
+            self.entryCorreo.insert(0, self.ejemplo_correo)
+            self.entryCorreo.config(fg='grey')
 
     def mostrar_interfaz(self):
         usuario = Usuario(self.ventanaPrincipal)
@@ -290,12 +308,18 @@ class Interfaz:
         self.entryApellido.bind("<KeyRelease>", lambda event: self.validar_entrada(self.entryApellido.get(), apellido_error))
         self.entryCedula.bind("<KeyRelease>", lambda event: self.validar_entrada_valor(self.entryCedula.get(), cedula_error))
         self.entryTelefono.bind("<KeyRelease>", lambda event: self.validar_entrada_valor(self.entryTelefono.get(), telefono_error))
-        self.entryCorreo.bind("<KeyRelease>",lambda event: self.validar_entrada(self.entryCorreo.get(),correo_error))
+        self.entryCorreo.bind("<KeyRelease>",lambda event: self.validar_entrada_correo(self.entryCorreo.get(), correo_error))
 
         self.entryNombre_servicio.bind("<KeyRelease>",lambda event: self.validar_entrada(self.entryNombre_servicio.get(),nombre_servicio_error))
         self.entryCedula_servicio.bind("<KeyRelease>",lambda event: self.validar_entrada_valor(self.entryCedula_servicio.get(),cedula_servicio_error))
         self.entryDescripcion_servicio.bind("<KeyRelease>",lambda event: self.validar_entrada(self.entryDescripcion_servicio.get(),descripcion_servicio_error))
         self.entryValor_servicio.bind("<KeyRelease>",lambda event: self.validar_entrada_valor(self.entryValor_servicio.get(),valor_servicio_error))
+
+        #comandos de teclado para hacer el ejemplo de correo en el entry del correo
+        self.entryCorreo.insert(0, self.ejemplo_correo)
+        self.entryCorreo.bind("<FocusIn>", self.on_entry_correo_focus_in)
+        self.entryCorreo.bind("<FocusOut>", self.on_entry_correo_focus_out)
+
 
         boton_guardar = tk.Button(self.ventanaPrincipal, text="Guardar Cliente", command=lambda: 
         self.accion_guardar_boton(self.entryNombre.get(), self.entryApellido.get(), self.entryCedula.get(), self.entryTelefono.get(),self.entryCorreo.get(), nombre_error, apellido_error, cedula_error, telefono_error, correo_error))
